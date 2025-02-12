@@ -22,7 +22,9 @@
 
         .nav {
             position: fixed;
-            right: 10px;
+            right: 20px;
+            top: 20px;
+            z-index: 100;
         }
 
         #main {
@@ -38,11 +40,12 @@
 
         #settings {
             display: none;
-            background: #f8fafc;
-            padding: 20px;
+            background: #ffffff;
+            padding: 25px;
             border-radius: 12px;
             margin-bottom: 20px;
-            background-color: transparent;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            width: 500px;
         }
 
         #settings.visible {
@@ -53,26 +56,76 @@
             background: #4299e1;
             color: white;
             border: none;
-            padding: 8px 16px;
+            padding: 10px 20px;
             border-radius: 8px;
             cursor: pointer;
-            margin-bottom: 20px;
+            font-size: 16px;
             transition: all 0.2s ease;
         }
 
         #settings-toggle:hover {
             background: #3182ce;
+            transform: translateY(-1px);
+        }
+
+        #settings .section {
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        #settings .section:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+
+        #settings h3 {
+            margin-bottom: 15px;
+            color: #2d3748;
+            font-size: 16px;
         }
 
         #settings label {
-            display: block;
-            margin: 10px 0;
+            display: flex;
+            align-items: center;
+            margin: 12px 0;
+            font-size: 14px;
+            color: #4a5568;
         }
 
         #settings input[type="number"] {
-            width: 60px;
-            padding: 4px;
+            width: 70px;
+            padding: 6px;
             margin-left: 8px;
+            border: 1px solid #e2e8f0;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        #settings input[type="checkbox"] {
+            margin-left: 8px;
+            width: 16px;
+            height: 16px;
+        }
+
+        .stats-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+            font-size: 14px;
+        }
+
+        .stats-table th,
+        .stats-table td {
+            padding: 8px;
+            text-align: left;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .stats-table th {
+            background-color: #f7fafc;
+            font-weight: 600;
         }
 
         #content {
@@ -84,6 +137,7 @@
             transition: all 0.2s ease;
             font-size: 40px;
             padding: 20px;
+            min-height: 200px;
         }
 
         #content:hover {
@@ -110,28 +164,25 @@
         #error,
         #word {
             display: none;
+            text-align: center;
+            margin: 15px 0;
+            padding: 10px;
+            border-radius: 8px;
         }
 
-        #error.visible,
+        #error.visible {
+            display: block;
+            color: #e53e3e;
+            background-color: #fff5f5;
+            font-size: 24px;
+        }
+
         #word.visible {
             display: block;
-        }
-
-        #error {
-            text-align: center;
-            color: #e53e3e;
-            font-size: 24px;
-            margin: 15px 0;
-            min-height: 36px;
-        }
-
-        #word {
-            text-align: center;
+            color: #2d3748;
+            background-color: #f7fafc;
             font-size: 36px;
             font-family: Consolas, "Microsoft YaHei";
-            margin: 20px 0;
-            min-height: 54px;
-            padding: 10px;
         }
 
         .flex {
@@ -139,7 +190,7 @@
             justify-content: space-around;
             background: #f8fafc;
             border-radius: 12px;
-            padding: 6px;
+            padding: 15px;
         }
 
         .col {
@@ -202,9 +253,31 @@
     <div class="nav">
         <button id="settings-toggle">设置</button>
         <div id="settings">
-            <label>单词长度：<input type="number" id="word-length" min="1" max="100" value="50"></label>
-            <label>难度等级：<input type="number" id="difficulty-level" min="1" max="10" value="2"></label>
-            <label>隐藏单词：<input type="checkbox" id="hide-word"></label>
+            <div class="section">
+                <h3>练习设置</h3>
+                <label>单词长度：<input type="number" id="word-length" min="1" max="100" value="50"></label>
+                <label>难度等级：<input type="number" id="difficulty-level" min="1" max="10" value="1"></label>
+                <label>隐藏单词：<input type="checkbox" id="hide-word"></label>
+            </div>
+            <div class="section">
+                <h3>练习统计</h3>
+                <table class="stats-table">
+                    <thead>
+                        <tr>
+                            <th>日期</th>
+                            <th>字数</th>
+                            <th>正确率</th>
+                            <th>用时</th>
+                        </tr>
+                    </thead>
+                    <tbody id="stats-body">
+                    </tbody>
+                </table>
+            </div>
+            <div class="section">
+                <h3>进度统计</h3>
+                <p>已掌握单词：<span id="mastered-count">0</span> / 1000</p>
+            </div>
         </div>
     </div>
     <div id="main">
@@ -239,7 +312,6 @@
             </div>
         </div>
     </div>
-
     <script>
         const beep = new Audio("data:audio/wav;base64,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");
         const state = {
@@ -258,7 +330,9 @@
             correctWords: JSON.parse(localStorage.getItem('correctWords') || '{}'),
             wordSound: null,
             lastSound: null,
-            masteredWords: new Set(JSON.parse(localStorage.getItem('masteredWords') || '[]'))
+            masteredWords: new Set(JSON.parse(localStorage.getItem('masteredWords') || '[]')),
+            practiceHistory: JSON.parse(localStorage.getItem('practiceHistory') || '[]'),
+            isTypingComplete: false
         };
 
         const elements = {
@@ -275,23 +349,83 @@
             time: document.getElementById('time'),
             wordLength: document.getElementById('word-length'),
             difficultyLevel: document.getElementById('difficulty-level'),
-            hideWord: document.getElementById('hide-word')
+            hideWord: document.getElementById('hide-word'),
+            statsBody: document.getElementById('stats-body'),
+            masteredCount: document.getElementById('mastered-count')
         };
 
-        // 设置面板切换
-        elements.settingsToggle.addEventListener('click', () => {
-            elements.settings.classList.toggle('visible');
-        });
+        // 更新统计信息显示
+        function updateStats() {
+            elements.masteredCount.textContent = state.masteredWords.size;
+
+            elements.statsBody.innerHTML = state.practiceHistory
+                .slice(-5) // 只显示最近5条记录
+                .map(record => `
+            <tr>
+                <td>${new Date(record.date).toLocaleDateString()}</td>
+                <td>${record.wordCount}</td>
+                <td>${record.accuracy}%</td>
+                <td>${record.time}秒</td>
+            </tr>
+        `)
+                .join('');
+        }
+
+        // 保存练习记录
+        function savePracticeRecord() {
+            const record = {
+                date: new Date().toISOString(),
+                wordCount: state.rate,
+                accuracy: ((1 - state.errorstr.length / state.str.length) * 100).toFixed(2),
+                time: state.seconds
+            };
+
+            state.practiceHistory.push(record);
+            if (state.practiceHistory.length > 50) {
+                state.practiceHistory.shift();
+            }
+
+            localStorage.setItem('practiceHistory', JSON.stringify(state.practiceHistory));
+            updateStats();
+        }
+
+        // 根据难度等级选择单词
+        function selectWordsByLevel(level, count) {
+            const wordsPerLevel = 100;
+            const startIndex = (level - 1) * wordsPerLevel;
+            const endIndex = startIndex + wordsPerLevel;
+
+            const availableWords = state.words
+                .slice(startIndex, endIndex)
+                .filter(word => !state.masteredWords.has(word));
+
+            if (availableWords.length < count) {
+                const otherWords = state.words
+                    .filter((word, index) => index < startIndex || index >= endIndex)
+                    .filter(word => !state.masteredWords.has(word));
+                availableWords.push(...otherWords);
+            }
+
+            const selected = [];
+            while (selected.length < count && availableWords.length > 0) {
+                const randomIndex = Math.floor(Math.random() * availableWords.length);
+                selected.push(availableWords.splice(randomIndex, 1)[0]);
+            }
+
+            return selected;
+        }
 
         // 初始化
         function init() {
+            state.isTypingComplete = false;
             clearInterval(state.intervalId);
             state.intervalId = setInterval(() => {
-                state.seconds++;
-                elements.time.textContent = state.seconds;
+                if (!state.isTypingComplete) {
+                    state.seconds++;
+                    elements.time.textContent = state.seconds;
+                }
             }, 1000);
 
-            // 重置状态
             state.seconds = 0;
             state.str = '';
             state.pastr = [];
@@ -305,10 +439,8 @@
             const difficultyLevel = parseInt(elements.difficultyLevel.value);
             state.isHide = elements.hideWord.checked;
 
-            // 使用新的选词算法
             const selectedWords = selectWordsByLevel(difficultyLevel, wordLength);
 
-            // 构建练习字符串和释义数组
             selectedWords.forEach(word => {
                 const wordIndex = state.words.indexOf(word);
                 state.str += word + ' ';
@@ -318,48 +450,18 @@
 
             elements.level.textContent = difficultyLevel;
 
-            // 创建并播放第一个单词的音频
-            state.wordSound = new Audio(`https://dict.youdao.com/dictvoice?type=0&audio=${state.selectedWords[0]}`);
-            state.wordSound.play();
+            if (state.selectedWords.length > 0) {
+                state.wordSound = new Audio(`https://dict.youdao.com/dictvoice?type=0&audio=${state.selectedWords[0]}`);
+                state.wordSound.play();
 
-            // 预加载下一个单词的音频
-            if (state.selectedWords.length > 1) {
-                state.lastSound = new Audio(`https://dict.youdao.com/dictvoice?type=0&audio=${state.selectedWords[1]}`);
-                state.lastSound.load();
+                if (state.selectedWords.length > 1) {
+                    state.lastSound = new Audio(`https://dict.youdao.com/dictvoice?type=0&audio=${state.selectedWords[1]}`);
+                    state.lastSound.load();
+                }
             }
 
             updateDisplay();
-        }
-
-
-        // 根据难度等级选择单词的函数
-        function selectWordsByLevel(level, count) {
-            const wordsPerLevel = 100; // 每个难度等级包含100个单词
-            const startIndex = (level - 1) * wordsPerLevel; // 当前等级的起始索引
-            const endIndex = startIndex + wordsPerLevel; // 当前等级的结束索引
-
-            // 获取当前等级可用的单词（排除已掌握的单词）
-            const availableWords = state.words
-                .slice(startIndex, endIndex)
-                .filter(word => !state.masteredWords.has(word));
-
-            // 如果可用单词不足，从其他等级补充
-            if (availableWords.length < count) {
-                const otherWords = state.words
-                    .filter((word, index) =>
-                        index < startIndex || index >= endIndex)
-                    .filter(word => !state.masteredWords.has(word));
-                availableWords.push(...otherWords);
-            }
-
-            // 随机选择指定数量的单词
-            const selected = [];
-            while (selected.length < count && availableWords.length > 0) {
-                const randomIndex = Math.floor(Math.random() * availableWords.length);
-                selected.push(availableWords.splice(randomIndex, 1)[0]);
-            }
-
-            return selected;
+            updateStats();
         }
 
         // 更新单词掌握进度
@@ -369,16 +471,13 @@
             } else {
                 state.correctWords[word]++;
 
-                // 如果单词正确输入达到10次，加入已掌握集合
                 if (state.correctWords[word] >= 10) {
                     state.masteredWords.add(word);
-                    // 保存到localStorage
-                    localStorage.setItem('masteredWords',
-                        JSON.stringify([...state.masteredWords]));
+                    localStorage.setItem('masteredWords', JSON.stringify([...state.masteredWords]));
                 }
             }
-            localStorage.setItem('correctWords',
-                JSON.stringify(state.correctWords));
+            localStorage.setItem('correctWords', JSON.stringify(state.correctWords));
+            updateStats();
         }
 
         // 更新显示
@@ -386,8 +485,6 @@
             elements.content.innerHTML = `<span>${state.str.substr(0, state.rate)}</span>${state.str.substr(state.rate)}`;
             elements.content.style.color = state.isHide ? 'white' : 'black';
             elements.rs.textContent = state.pastr[state.wordCount];
-
-            // 只在有内容时显示 error 和 word
             elements.error.classList.toggle('visible', elements.error.textContent !== '');
             elements.word.classList.toggle('visible', elements.word.textContent !== '');
         }
@@ -401,27 +498,13 @@
             }
         }
 
-        // 播放音频
-        function playSound() {
-            if (state.lastSound) state.lastSound.play();
+        // 处理打字完成
+        function handleTypingComplete() {
+            state.isTypingComplete = true;
+            clearInterval(state.intervalId);
+            savePracticeRecord();
+            setTimeout(init, 3000); // 延迟1秒后开始新的练习
         }
-
-        // 键盘事件处理
-        document.addEventListener('keydown', (event) => {
-            const { keyCode } = event;
-
-            if (keyCode === 13) { // Enter
-                elements.word.textContent = state.selectedWords[state.wordCount];
-                state.isCorrectWord = false;
-            } else if (keyCode === 220) { // \
-                state.wordSound.play();
-            } else if (keyCode === 27) { // Esc
-                state.isHide = !state.isHide;
-                updateDisplay();
-            } else if (keyCode >= 32 && keyCode <= 90) { // 字母和空格
-                handleTyping(event);
-            }
-        });
 
         // 处理打字函数
         function handleTyping(event) {
@@ -431,18 +514,22 @@
 
                 if (state.str[state.rate] === ' ') {
                     if (state.isCorrectWord && state.isHide) {
-                        const tempWord = state.selectedWords[state.wordCount];
-                        updateWordMastery(tempWord);
+                        const currentWord = state.selectedWords[state.wordCount];
+                        updateWordMastery(currentWord);
                     }
                     state.wordCount++;
                     if (state.lastSound) {
-                        state.lastSound.play();
+                        //state.lastSound.play()
+                        state.wordSound = state.lastSound
+                        playSoundTwice()
+
                     }
                     loadSound();
                     state.isCorrectWord = true;
                 }
+
                 if (state.rate === state.str.length) {
-                    init();
+                    handleTypingComplete();
                 }
             } else {
                 state.isCorrectWord = false;
@@ -451,21 +538,51 @@
                 beep.play();
             }
 
-            // 更新统计信息
             elements.speed.textContent = (state.rate / state.seconds || 0).toFixed(2);
             elements.correct.textContent = state.rate - 1;
             elements.correctrate.textContent =
                 ((1 - state.errorstr.length / state.str.length) * 100).toFixed(2) + '%';
-
             updateDisplay();
         }
 
-        // 初始事件监听
-        elements.content.addEventListener('click', init);
-        elements.rs.addEventListener('click', playSound);
+        //播放声音2次
+        async function playSoundTwice() {
+            for (let i = 0; i < 2; i++) {
+                await new Promise(resolve => {
+                    state.wordSound.play();
+                    state.wordSound.onended = resolve; // 等待当前声音播放结束后
+                });
+            }
+        }
+        // 事件监听
+        elements.settingsToggle.addEventListener('click', () => {
+            elements.settings.classList.toggle('visible');
+        });
 
-        // 自动聚焦
-        window.addEventListener('load', () => elements.content.focus());
+        document.addEventListener('keydown', (event) => {
+            const { keyCode } = event;
+            if (keyCode === 13) { // Enter
+                elements.word.textContent = state.selectedWords[state.wordCount];
+                state.isCorrectWord = false;
+            } else if (keyCode === 220) { // \ 
+                state.wordSound.play();
+            } else if (keyCode === 27) { // Esc
+                state.isHide = !state.isHide;
+                updateDisplay();
+            } else if (keyCode >= 32 && keyCode <= 90) { // 字母和空格
+                handleTyping(event);
+            }
+        });
+
+        elements.content.addEventListener('click', init);
+        elements.rs.addEventListener('click', () => {
+            if (state.wordSound) state.wordSound.play();
+        });
+
+        window.addEventListener('load', () => {
+            elements.content.focus();
+            updateStats();
+        });
     </script>
 </body>
 
